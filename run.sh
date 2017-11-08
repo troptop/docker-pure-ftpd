@@ -101,9 +101,12 @@ then
 		        fi
 		done
 		
-		echo "ONE NUMBER Config file creation"
+		echo "Other Config file creation"
+		if [ "$TLSCIPHERSUITE" != "" ]; then
+			TLSCIPHERSUITE='ALL:!aNULL:!SSLv3'
+		fi
 		# OTHER PARAMETER WITHOUT CONTROL
-		OTHERCONF="AnonymousRatio LimitRecursion PassivePortRange PerUserLimits Quota UserRatio AnonymousBandwidth UserBandwidth Umask AltLog Bind ForcePassiveIP SyslogFacility FSCharset ClientCharset TrustedIP FortunesFile LDAPConfigFile MySQLConfigFile PGSQLConfigFile PureDB ExtAuth"
+		OTHERCONF="TLSCipherSuite AnonymousRatio LimitRecursion PassivePortRange PerUserLimits Quota UserRatio AnonymousBandwidth UserBandwidth Umask AltLog Bind ForcePassiveIP SyslogFacility FSCharset ClientCharset TrustedIP FortunesFile LDAPConfigFile MySQLConfigFile PGSQLConfigFile PureDB ExtAuth"
 		
 		for file in $OTHERCONF; do
 		        bool=$(echo "$file" | tr [:lower:] [:upper:])
