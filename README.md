@@ -58,16 +58,16 @@ Please refer to http://www.linuxcertif.com/man/8/pure-ftpd-wrapper/ to know the 
 Then execute docker :
   - ftp active mode 
 ```sh
-docker run -d --name=ftpserver -p20-21:20-21 troptop/docker-pure-ftp
+docker run -d --name=ftpserver -p20-21:20-21 -v /my/path/ftpconf:/etc/pure-ftpd/ troptop/docker-pure-ftp
 or
-docker run -d --name=ftpserver -e FILEMODE=TRUE -p20-21:20-21 troptop/docker-pure-ftp
+docker run -d --name=ftpserver -e FILEMODE=TRUE -p20-21:20-21 -v /my/path/ftpconf:/etc/pure-ftpd/  troptop/docker-pure-ftp
 ```
   - ftp passive mode 
   you have to setup the PassivePortRange (with the docker port that you open - 40000 to 40006 in the following example) and ForcePassiveIP files
 ```sh
-docker run -d --name=ftpserver -p21:21 -p40000-40006:40000-40006 troptop/docker-pure-ftp
+docker run -d --name=ftpserver -p21:21 -p40000-40006:40000-40006 -v /my/path/ftpconf:/etc/pure-ftpd/  troptop/docker-pure-ftp
 or
-docker run -d --name=ftpserver -e FILEMODE=TRUE -p21:21 -p40000-40006:40000-40006 troptop/docker-pure-ftp
+docker run -d --name=ftpserver -e FILEMODE=TRUE -p21:21 -p40000-40006:40000-40006 -v /my/path/ftpconf:/etc/pure-ftpd/  troptop/docker-pure-ftp
 ```
 
 # FILEMODE = FALSE
