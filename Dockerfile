@@ -2,7 +2,6 @@ FROM debian:jessie
 
 # feel free to change this ;)
 MAINTAINER Andrew Stilliard <andrew.stilliard@gmail.com>
-USER root
 # properly setup debian sources
 ENV DEBIAN_FRONTEND noninteractive
 RUN echo "deb http://http.debian.net/debian jessie main\n\
