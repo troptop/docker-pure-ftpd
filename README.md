@@ -1,5 +1,5 @@
-# docker-pure-ftpd
-
+# Docker-pure-ftpd
+Setup your pure-ftpd quickly
 This docker allows you to customize your pure-ftpd with 2 different modes
   - FILEMODE=TRUE -> using files configuration
   - FILEMODE=FALSE -> using ENV configuration
@@ -58,16 +58,16 @@ Please refer to http://www.linuxcertif.com/man/8/pure-ftpd-wrapper/ to know the 
 Then execute docker :
   - ftp active mode 
 ```sh
-docker run -d --name=ftpserver -p20-21:20-21 -v /my/path/ftpconf:/etc/pure-ftpd/ troptop/docker-pure-ftp
+docker run -d --name=ftpserver -p20-21:20-21 troptop/docker-pure-ftp
 or
-docker run -d --name=ftpserver -e FILEMODE=TRUE -p20-21:20-21 -v /my/path/ftpconf:/etc/pure-ftpd/  troptop/docker-pure-ftp
+docker run -d --name=ftpserver -e FILEMODE=TRUE -p20-21:20-21 troptop/docker-pure-ftp
 ```
   - ftp passive mode 
   you have to setup the PassivePortRange (with the docker port that you open - 40000 to 40006 in the following example) and ForcePassiveIP files
 ```sh
-docker run -d --name=ftpserver -p21:21 -p40000-40006:40000-40006 -v /my/path/ftpconf:/etc/pure-ftpd/  troptop/docker-pure-ftp
+docker run -d --name=ftpserver -p21:21 -p40000-40006:40000-40006 troptop/docker-pure-ftp
 or
-docker run -d --name=ftpserver -e FILEMODE=TRUE -p21:21 -p40000-40006:40000-40006 -v /my/path/ftpconf:/etc/pure-ftpd/  troptop/docker-pure-ftp
+docker run -d --name=ftpserver -e FILEMODE=TRUE -p21:21 -p40000-40006:40000-40006 troptop/docker-pure-ftp
 ```
 
 # FILEMODE = FALSE
@@ -83,13 +83,13 @@ example :
  
 Example of using PAM configuration
 ```sh
-docker run  -d --name=ftpserver -p20-21:20-21 -e CHROOTEVERYONE=yes -e CREATEHOMEDIR=yes -e NOANONYMOUS=yes -e NOCHMOD=yes -e PAMAUTHENTICATION=yes -e UNIXAUTHENTICATION=no -e VERBOSELOG=yes -e FILEMODE=false -e TLS=2  troptop/docker-pure-ftp
+docker run  -d --name=ftpserver -p20-21:20-21 -e CHROOTEVERYONE=yes -e CREATEHOMEDIR=yes -e NOANONYMOUS=yes -e NOCHMOD=yes -e PAMAUTHENTICATION=yes -e UNIXAUTHENTICATION=no -e VERBOSELOG=yes -e FILEMODE=false  troptop/docker-pure-ftp
  ```
  
  IF you want to use Virtual users, you have to configure PUREDB and PASSWDPATH ENVs
  Example :
  ```sh
-docker run  -d --name=ftpserver -p20-21:20-21 -e CHROOTEVERYONE=yes -e CREATEHOMEDIR=yes -e NOANONYMOUS=yes -e NOCHMOD=yes -e PAMAUTHENTICATION=no -e UNIXAUTHENTICATION=no -e VERBOSELOG=yes -e FILEMODE=false -e TLS=2 -e PUREDB='/etc/pure-ftpd/pureftpd.pdb' -e PASSWDPATH='/etc/pure-ftpd/passwd' -v /my/path/passwd:/etc/pure-ftpd/passwd /troptop/docker-pure-ftp
+docker run  -d --name=ftpserver -p20-21:20-21 -e CHROOTEVERYONE=yes -e CREATEHOMEDIR=yes -e NOANONYMOUS=yes -e NOCHMOD=yes -e PAMAUTHENTICATION=no -e UNIXAUTHENTICATION=no -e VERBOSELOG=yes -e FILEMODE=false -e PUREDB='/etc/pure-ftpd/pureftpd.pdb' -e PASSWDPATH='/etc/pure-ftpd/passwd' -v /my/path/passwd:/etc/pure-ftpd/passwd /troptop/docker-pure-ftp
  ```
  
  The passwd file looks like :
@@ -100,13 +100,38 @@ local IPs>:<authorized client IPs>:<refused client IPs>:<time
 restrictions>
 
 More information in https://download.pureftpd.org/pure-ftpd/doc/README.Virtual-Users
+# TLS
+To enable TLS, you have to specify the parameter TLS and add a pem file to /etc/ssl/private/pure-ftpd.pem
 
-#Volume:
+- TLS=0 (default) disables SSL/TLS security mechanisms.
+- TLS=1 Accept both normal sessions and SSL/TLS ones.
+- TLS=2 refuses connections that aren't using SSL/TLS security mechanisms, including anonymous ones.
+- TLS=3 refuses connections that aren't using SSL/TLS security mechanisms, and refuse cleartext data channels as well.
+```sh
+#openssl req -x509 -nodes -newkey rsa:2048 -sha256 -keyout   /EFS/DOCKER/FTPS/ssl/pure-ftpd.pem -out /EFS/DOCKER/FTPS/ssl/pure-ftpd.pem
+```
+Then Execute Docker with :
+- Active mode
+```sh
+docker run -d --name=ftpserver -p20-21:20-21 -e FILEMODE=false ... -v /my/path/pure-ftpd.pem:/etc/ssl/private/pure-ftpd.pem   -e TLS=2  troptop/docker-pure-ftpd
+```
+- Passive mode
+```sh
+docker run -d --name=ftpserver -p21:21 -p40000-40006:40000-40006 -e PASSIVEPORTRANGE="40000 40006" -e FORCEPASSIVEIP="yourIP" -e FILEMODE=false ... -v /my/path/pure-ftpd.pem:/etc/ssl/private/pure-ftpd.pem -e TLS=2  troptop/docker-pure-ftpd
+```
+
+# Volume:
 - /mnt/ftpdir will be the host ftp directory
 - passwd file will contain "ftpuser:passord:10001:10001::/home/ftpuser"
 ```sh
 docker run  -d --name=ftpserver -p20-21:20-21 -e CREATEHOMEDIR=yes  -e FILEMODE=false -e TLS=2 -e PUREDB='/etc/pure-ftpd/pureftpd.pdb' -e PASSWDPATH='/etc/pure-ftpd/passwd' -v /my/path/passwd:/etc/pure-ftpd/passwd -v /mnt/ftpdir:/home/ftpuser /troptop/docker-pure-ftp
 ```
  
-#Logs:
+# Logs:
 You can find the logs in /var/log/pure-ftpd/pure-ftpd.log
+
+
+ 
+ 
+ 
+ 
