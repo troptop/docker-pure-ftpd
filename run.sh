@@ -5,21 +5,28 @@ PureFTPConfDirectory="conf/"
 PureFTPAuthDirectory="auth/"
 
 echo "Check the run.sh mode (FILEMODE or NOT FILEMODE that's the question)"
-if [ "$FILEMODE" == "" ] || [ "$FILEMODE" == "TRUE" ] || [ "$FILEMODE" == "true" ] ;
+MODE=true
+if [ "$FILEMODE" == "TRUE" ] || [ "$FILEMODE" == "true" ] ;
 then
-	echo "FILEMODE TRUE"
-	FILEMODE=true
-else 
-	echo "FILEMODE FALSE"
-	FILEMODE=false
+	MODE="true"
+fi
+if [ "$FILEMODE" == "FALSE" ] || [ "$FILEMODE" == "false" ] ;
+then
+	MODE="false"
+fi
+if [ "$FILEMODE" == "HYBRID" ] || [ "$FILEMODE" == "hybrid" ] ;
+then
+	MODE="hybrid"
+
 fi
 
+echo "FILEMODE " $MODE
 echo "Check if the pure-ftpd conf directory exists ($PureFTPPath$PureFTPConfDirectory)"
 if [ -d "$PureFTPPath$PureFTPConfDirectory" ];
 then
 	echo "OK"
 
-	if [ "$FILEMODE" == "false" ];
+	if [ "$MODE" == "false" ] || [ "$MODE" == "hybrid" ] ;
 	then
 		echo "START : Generate pureftp config file from the docker environment"
 		echo "PureFTPD BOOLEAN PARAMETERS"
@@ -55,10 +62,13 @@ then
 				echo "$y" > "$PureFTPPath$PureFTPConfDirectory$file"
 				echo "Add value $y to $PureFTPPath$PureFTPConfDirectory$file"
 		        else
-		                if [ -f "$PureFTPPath$PureFTPConfDirectory$file" ];
-		                then
-		                        rm -f "$PureFTPPath$PureFTPConfDirectory$file"
-					echo "Delete file $PureFTPPath$PureFTPConfDirectory$file"
+				if [ "$MODE" == "false" ] ;
+				then
+			                if [ -f "$PureFTPPath$PureFTPConfDirectory$file" ];
+			                then
+			                        rm -f "$PureFTPPath$PureFTPConfDirectory$file"
+						echo "Delete file $PureFTPPath$PureFTPConfDirectory$file"
+					fi
 				fi
 		        fi
 		done
@@ -93,10 +103,13 @@ then
 		                echo $y > "$PureFTPPath$PureFTPConfDirectory$file"
 				echo "Add value $y to $PureFTPPath$PureFTPConfDirectory$file"
 		        else
-		                if [ -f "$PureFTPPath$PureFTPConfDirectory$file" ];
-		                then
-		                        rm -f "$PureFTPPath$PureFTPConfDirectory$file"
-					echo "Delete file $PureFTPPath$PureFTPConfDirectory$file"
+				if [ "$MODE" == "false" ] ;
+                                then
+			                if [ -f "$PureFTPPath$PureFTPConfDirectory$file" ];
+			                then
+			                        rm -f "$PureFTPPath$PureFTPConfDirectory$file"
+						echo "Delete file $PureFTPPath$PureFTPConfDirectory$file"
+					fi
 				fi
 		        fi
 		done
@@ -116,10 +129,13 @@ then
 		                echo $y > "$PureFTPPath$PureFTPConfDirectory$file"
 				echo "Add value $y to $PureFTPPath$PureFTPConfDirectory$file"
 			else
-				if [ -f "$PureFTPPath$PureFTPConfDirectory$file" ];
-				then
-					rm -f "$PureFTPPath$PureFTPConfDirectory$file"
-					echo "Delete file $PureFTPPath$PureFTPConfDirectory$file"
+				if [ "$MODE" == "false" ] ;
+                                then
+					if [ -f "$PureFTPPath$PureFTPConfDirectory$file" ];
+					then
+						rm -f "$PureFTPPath$PureFTPConfDirectory$file"
+						echo "Delete file $PureFTPPath$PureFTPConfDirectory$file"
+					fi
 				fi
 		        fi
 		done
@@ -159,6 +175,18 @@ then
 			fi
 		else
 			echo "-> NOK"
+			if [ "$MODE" == "hybrid" ] ;
+                        then
+				PASSWDPATH="/etc/pure-ftpd/passwd/pureftpd.passwd"
+				echo -n "Default PASSWDPATH file existing check ($PASSWDPATH) "
+                        	if [ -f $PASSWDPATH ];then
+                                	echo "-> OK"
+	                                echo "Generate the pdb file to $PUREDB (dont forget to add '$PUREDB' in $PureFTPPath$PureFTPConfDirectory""PureDB)" 
+        	                        pure-pw mkdb $PUREDB -f $PASSWDPATH
+                	        else
+                        	        echo "-> NOK"
+                        	fi
+			fi
 		fi
 	fi
 else
