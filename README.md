@@ -3,6 +3,7 @@ Setup your pure-ftpd quickly
 This docker allows you to customize your pure-ftpd with 2 different modes
   - FILEMODE=TRUE -> using files configuration
   - FILEMODE=FALSE -> using ENV configuration
+  - FILEMODE=HYBRID -> using files overriding by ENV configuration
 
 This docker container uses pure-ftpd-wrapper. you can find the parameters allowed here (http://www.linuxcertif.com/man/8/pure-ftpd-wrapper/)  
 
@@ -100,6 +101,97 @@ local IPs>:<authorized client IPs>:<refused client IPs>:<time
 restrictions>
 
 More information in https://download.pureftpd.org/pure-ftpd/doc/README.Virtual-Users
+
+# FILEMODE = HYBRID
+in the filemode=hybrid , you can to setup the pure-ftpd directory configuration (as the FILEMODE=TRUE Section) and override this setup with the environment variable (as the FILEMODE=FALSE Section) :
+```sh
+# ls /etc/pure-ftpd/*
+/etc/pure-ftpd/pureftpd-dir-aliases  /etc/pure-ftpd/pureftpd.pdb
+
+/etc/pure-ftpd/auth:
+50PureDB  65unix  70pam
+
+/etc/pure-ftpd/conf:
+AltLog	AnonymousOnly  FSCharset  ForcePassiveIP  MinUID  NoAnonymous  PAMAuthentication  PassivePortRange  PureDB  TLS  TLSCipherSuite  UnixAuthentication
+
+/etc/pure-ftpd/db:
+
+/etc/pure-ftpd/passwd:
+pureftpd.passwd
+
+/etc/pure-ftpd/ssl:
+pure-ftpd.pem
+```
+Configuration Files Content Example :
+```sh
+#cat /etc/pure-ftpd/conf/*
+clf:/var/log/pure-ftpd/transfer.log
+no
+UTF-8
+192.168.1.10
+1000
+no
+yes
+40000 40006
+/etc/pure-ftpd/pureftpd.pdb
+2
+ALL:!aNULL:!SSLv3
+yes
+```
+
+Then execute docker :
+
+  - ftp passive mode 
+  you have to setup the PassivePortRange (with the docker port that you open - 40000 to 40006 in the following example) and ForcePassiveIP files
+```sh
+docker run -d --name=ftpserver -p21:21 -p40000-40006:40000-40006 -e CHROOTEVERYONE=yes -e CREATEHOMEDIR=yes -e NOANONYMOUS=yes -e NOCHMOD=yes -e PAMAUTHENTICATION=no -e UNIXAUTHENTICATION=no -e VERBOSELOG=yes -e FILEMODE=hybrid troptop/docker-pure-ftp
+```
+
+This command will take your configuration files as default setup, and change the content of these file with the Environment Variable.
+The effective configuration will be setup with the Environment Variable, but the parameter that does not exist in the docker command line will be take with the configuration file.
+
+ENVIRONMENT VARIABLE SETUP : 
+- CHROOTEVERYONE=yes 
+- CREATEHOMEDIR=yes 
+- NOANONYMOUS=yes 
+- NOCHMOD=yes 
+- PAMAUTHENTICATION=no 
+- UNIXAUTHENTICATION=no 
+- VERBOSELOG=yes
+
+FILE SETUP :
+- AltLog=clf:/var/log/pure-ftpd/transfer.log
+- AnonymousOnly=no
+- FSCharset=UTF-8
+- ForcePassiveIP=192.168.1.10
+- MinUID=1000
+- NoAnonymous=no
+- PAMAuthentication=yes
+- PassivePortRange=40000 40006
+- PureDB=/etc/pure-ftpd/pureftpd.pdb
+- TLS=2
+- TLSCipherSuite=ALL:!aNULL:!SSLv3
+- UnixAuthentication=yes
+
+FINAL SETUP :
+- CHROOTEVERYONE=yes 
+- CREATEHOMEDIR=yes 
+- NOANONYMOUS=yes (was NoAnonymous=No because of the file  ut the Environment Variable override the file value)
+- NOCHMOD=yes 
+- PAMAUTHENTICATION=no (was PAMAuthentication=yes because of the file but the Environment Variable override the file value)
+- UNIXAUTHENTICATION=no (was UnixAuthentication=yes because of the file but the Environment Variable override the file value)
+- VERBOSELOG=yes
+- AltLog=clf:/var/log/pure-ftpd/transfer.log
+- AnonymousOnly=no
+- FSCharset=UTF-8
+- ForcePassiveIP=192.168.1.10
+- MinUID=1000
+- PassivePortRange=40000 40006
+- PureDB=/etc/pure-ftpd/pureftpd.pdb
+- TLS=2
+- TLSCipherSuite=ALL:!aNULL:!SSLv3
+
+
 # TLS
 To enable TLS, you have to specify the parameter TLS and add a pem file to /etc/ssl/private/pure-ftpd.pem
 
